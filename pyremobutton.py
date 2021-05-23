@@ -18,7 +18,7 @@ from evdev import InputDevice, categorize, ecodes, list_devices
 
 import multiprocessing as mp
 
-from monitor_bluetooth import * 
+#from monitor_bluetooth import * 
 
 import settings
 
