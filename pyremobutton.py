@@ -4,10 +4,10 @@ from __future__ import absolute_import, print_function, unicode_literals
 import dbus
 import dbus.mainloop.glib
 try:
-  from gi.repository import GObject
+    #from gi.repository import GObject
+    from gi.repository import GLib
 except ImportError:
-  import gobject as GObject
-
+    exit()
 import os
 import sys
 import time
@@ -43,12 +43,17 @@ def read_button_daemon(button):
                     dbus_interface="org.freedesktop.DBus.Properties",
                     signal_name="PropertiesChanged",
                     path_keyword="path")
-    mainloop = GObject.MainLoop()
-    mainloop.run()
+    mainloop = GLib.MainLoop()
+    logger.info("Start {}".format(g_button['NAME']))
+    try:
+        mainloop.run()
+    except KeyboardInterrupt:
+        logger.warning("KeyboardInterrupt {}".format(g_button['NAME']))
+        sys.exit()
 
 def child_process(button):
     pid = os.getpid()
-    logger.info(pid,"#event start")
+    logger.info("{} event start".format(pid))
     COMMAND = button['COMMAND']
     devices = [InputDevice(fn) for fn in list_devices()]
     device = ''
@@ -63,22 +68,25 @@ def child_process(button):
     del device
     dev = InputDevice(target_device_path)
     dev.capabilities(verbose=True)
-
-    for event in dev.read_loop():
-        if event.type == ecodes.EV_KEY:
-            logger.info(categorize(event))
-            if 'down' in str(categorize(event)) :
-                logger.info("%s %s",pid,"down is pused")
-                os.system(COMMAND)
+    try:
+        for event in dev.read_loop():
+            if event.type == ecodes.EV_KEY:
+                logger.info(categorize(event))
+                if 'down' in str(categorize(event)) :
+                    logger.info("%s %s",pid,"down is pused")
+                    os.system(COMMAND)
+    except KeyboardInterrupt:
+        logger.warning("KeyBoardInterrupt Child")
+        sys.exit()
     sys.exit() 
 
 def find_connection(interface, changed, invalidated, path):
     global g_button
     global g_event_process
     iface = interface[interface.rfind(".") + 1:]
-    logger.info("iface=",iface," path=",path)
+    logger.info("iface={} path={}".format(iface,path))
     path2 = path.replace('_',':')
-    logger.info("path2=",path2,"MAC=",g_button['MAC'])
+    logger.info("path2={} MAC={}".format(path2,g_button['MAC']))
     for name, value in changed.items():
         val = str(value)
         logger.info("{%s.PropertyChanged} [%s] %s = %s" % (iface, path, name,val))
@@ -87,6 +95,7 @@ def find_connection(interface, changed, invalidated, path):
             os.system(g_button['COMMAND'])
             g_event_process = mp.Process(target=child_process, args=(g_button,))
             g_event_process.start()
+            logger.debug("##########################")
         elif g_button['MAC'] in path2 and name == "Connected" and val == "0":
             try:
                 g_event_process.terminate()
