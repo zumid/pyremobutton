@@ -74,6 +74,7 @@ def child_process(button):
                 logger.info(categorize(event))
                 if 'down' in str(categorize(event)) :
                     logger.info("%s %s",pid,"down is pused")
+                    logger.info("[RUN]pushed  {}".format(COMMAND))
                     os.system(COMMAND)
     except KeyboardInterrupt:
         logger.warning("KeyBoardInterrupt Child")
@@ -92,6 +93,7 @@ def find_connection(interface, changed, invalidated, path):
         logger.info("{%s.PropertyChanged} [%s] %s = %s" % (iface, path, name,val))
         if g_button['MAC'] in path2 and name == "Connected" and val == "1":
             logger.info("[FIND] {}".format(g_button['NAME']))
+            logger.info("[RUN]connected  {}".format(g_button['COMMAND']))
             os.system(g_button['COMMAND'])
             g_event_process = mp.Process(target=child_process, args=(g_button,))
             g_event_process.start()
@@ -99,6 +101,7 @@ def find_connection(interface, changed, invalidated, path):
         elif g_button['MAC'] in path2 and name == "Connected" and val == "0":
             try:
                 g_event_process.terminate()
+                logger.debug("{} process terminated".format(gbutton['NAME']))
             except NameError:
                 logger.warning("g_event_process terminate failed")
                 pass
