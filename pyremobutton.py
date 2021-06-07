@@ -111,6 +111,7 @@ if __name__ == '__main__':
     g_event_process = ''
     
     prog_name = os.path.splitext(os.path.basename(__file__))[0]
+    current_dir = os.path.dirname(__file__)
 
     # Logger setting
     logger = getLogger(__name__)
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     stdout_handler.setFormatter(log_format)
     logger.addHandler(stdout_handler)
     # ログファイルへのハンドラ
-    file_handler = FileHandler("./log/"+prog_name+"_"+datetime.now().strftime("%Y%m%d")+".log")
+    file_handler = FileHandler(current_dir+"/log/"+prog_name+"_"+datetime.now().strftime("%Y%m%d")+".log")
     file_handler.setFormatter(log_format)
     logger.addHandler(file_handler)
     a="text"
